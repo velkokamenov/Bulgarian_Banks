@@ -21,7 +21,7 @@ build_fname <- function(year, month) {
   }
   
   # Case 3: 2008-12 to 2020 → bs_q + xls
-  if (year <= 2020) {
+  if (year <= 2021 && month<= 6) {
     return(sprintf("bs_q_%d%02d_a1_bg.xls", year, month))
   }
   
