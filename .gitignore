@@ -1,0 +1,13 @@
+# R session files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# RStudio project files
+*.Rproj
+
+# Ignore everything inside Data and Analysis Folders
+Input Data/
+Output Data/
+Power BI Reports
