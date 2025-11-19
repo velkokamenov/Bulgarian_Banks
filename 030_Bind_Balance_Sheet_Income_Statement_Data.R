@@ -197,6 +197,61 @@ process_format_2 <- function(path) {
 bs_long_format_2 <- map_dfr(files_format_2, process_format_2)
 }
 
+### --- Format 3 (2015 03 to 2020 03) --- ###
+{
+files_format_3 <- list.files(
+  path       = in_dir,
+  pattern    = "^bs_q_((2015(0[3-9]|1[0-2]))|(201[6-9](0[1-9]|1[0-2]))|(2020(0[1-3])))_a1_bg\\.xls$",
+  full.names = TRUE
+)
+
+# process one workbook (all sheets) ----------------------------------------
+process_format_3 <- function(path) {
+  
+  library(readxl)
+  library(tidyverse)
+  library(lubridate)
+  
+  sheets <- excel_sheets(path) |> setdiff(c("Sheet1", "Title"))
+  
+  map_dfr(sheets, function(sh) {
+    
+    dat <- read_xls(path, sheet = sh, col_names = FALSE, .name_repair = "minimal")
+    
+    bank_name <- as.character(dat[1, 1, drop = TRUE])
+    report_date   <- get_report_date(dat[2, 3, drop = TRUE])
+      
+    assets <- dat[9:23, c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Assets")
+    
+    liabilities = dat[29:39,c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Liabilities")
+    
+    equity = dat[45:58,c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Equity")
+    
+    income_statement = dat[64:94,c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Income Statement")
+    
+    all_data = assets %>%
+      bind_rows(liabilities) %>%
+      bind_rows(equity) %>%
+      bind_rows(income_statement) %>%
+      mutate(bank_name = bank_name
+             , report_date = report_date
+             , excel_sheet_code = sh
+      )
+    
+  })
+}
+
+bs_long_format_3 <- map_dfr(files_format_3, process_format_3)
+}
+
 ### --- Format 5 (2021 09 to Latest) --- ###
 {
 files_format_5 <- list.files(
