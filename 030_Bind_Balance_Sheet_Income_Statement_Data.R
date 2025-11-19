@@ -3,8 +3,9 @@ library(dplyr)
 library(stringr)
 library(purrr)
 library(lubridate)
+library(writexl)
 
-# helper: safe date extraction from cell (3,4) -----------------------------
+# helper: safe date extraction 
 get_report_date <- function(x) {
   x <- x[[1]]
   if (inherits(x, "Date")) return(x)
@@ -13,7 +14,7 @@ get_report_date <- function(x) {
   suppressWarnings(as.Date(as.numeric(x), origin = "1899-12-30"))
 }
 
-# folder with the new-format A1 files (.xlsx) -------------------------------
+# folder with the Balance Sheet and Income Statement data
 in_dir  <- "./Input Data/Balance Sheet and Income Statement"
 
 ### --- Format 1 (2004 03 to 2006 12) --- ###
@@ -252,6 +253,71 @@ process_format_3 <- function(path) {
 bs_long_format_3 <- map_dfr(files_format_3, process_format_3)
 }
 
+### --- Format 4 (2020 06 to 2021 06) --- ###
+{
+files_format_4 <- list.files(
+  path       = in_dir,
+  pattern    = "^bs_q_((2020(0[6-9]|1[0-2]))|(2021(0[1-6])))_a1_bg\\.xls$",
+  full.names = TRUE
+)
+
+# process one workbook (all sheets) ----------------------------------------
+process_format_4 <- function(path) {
+  
+  library(readxl)
+  library(tidyverse)
+  library(lubridate)
+  
+  sheets <- excel_sheets(path) |> setdiff(c("Sheet1", "Title"))
+  
+  map_dfr(sheets, function(sh) {
+    
+    dat <- read_xls(path, sheet = sh, col_names = FALSE, .name_repair = "minimal")
+    
+    bank_name <- as.character(dat[1, 1, drop = TRUE])
+    report_date   <- get_report_date(dat[2, 3, drop = TRUE])
+    
+    assets <- dat[9:23, c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Assets")
+    
+    liabilities = dat[29:39,c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Liabilities")
+    
+    equity = dat[45:58,c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Equity")
+    
+    if (path == "./Input Data/Balance Sheet and Income Statement/bs_q_202106_a1_bg.xls") {
+    
+    income_statement = dat[64:96,c(1,2,3)] %>%
+      set_names(c("code","description", "value")) %>%
+      mutate(category = "Income Statement")
+    
+    } else {
+      
+      income_statement = dat[64:95,c(1,2,3)] %>%
+        set_names(c("code","description", "value")) %>%
+        mutate(category = "Income Statement")
+      
+    }
+    
+    all_data = assets %>%
+      bind_rows(liabilities) %>%
+      bind_rows(equity) %>%
+      bind_rows(income_statement) %>%
+      mutate(bank_name = bank_name
+             , report_date = report_date
+             , excel_sheet_code = sh
+      )
+    
+  })
+}
+
+bs_long_format_4 <- map_dfr(files_format_4, process_format_4)
+}
+
 ### --- Format 5 (2021 09 to Latest) --- ###
 {
 files_format_5 <- list.files(
@@ -307,7 +373,13 @@ bs_long_format_5 <- map_dfr(files_format_5, process_format_5)
   
 }
 
+All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
+  bind_rows(bs_long_format_2) %>%
+  bind_rows(bs_long_format_3) %>%
+  bind_rows(bs_long_format_4) %>%
+  bind_rows(bs_long_format_5) 
 
+write_xlsx(All_Balance_Sheet_Income_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
 
 
 
