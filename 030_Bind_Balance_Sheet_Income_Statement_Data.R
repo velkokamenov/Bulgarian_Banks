@@ -373,11 +373,15 @@ bs_long_format_5 <- map_dfr(files_format_5, process_format_5)
   
 }
 
+# Format Final File
+Bank_Names_Nomenclature = read_xlsx("./Input Data/Bank_Names_Nomenclature.xlsx")
+
 All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
   bind_rows(bs_long_format_2) %>%
   bind_rows(bs_long_format_3) %>%
   bind_rows(bs_long_format_4) %>%
-  bind_rows(bs_long_format_5) 
+  bind_rows(bs_long_format_5) %>%
+  left_join(Bank_Names_Nomenclature %>% mutate(excel_sheet_code = as.character(excel_sheet_code)), by = "excel_sheet_code")
 
 write_xlsx(All_Balance_Sheet_Income_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
 
