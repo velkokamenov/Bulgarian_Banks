@@ -167,6 +167,8 @@ process_format_2 <- function(path) {
     report_date <- ymd(sprintf("%04d-%02d-01", year, month)) %>%
       ceiling_date("month") - days(1)
     
+    if (year <= 2007) {
+    
     assets <- dat[6:20, c(2,3)] %>%
       set_names(c("description", "value")) %>%
       mutate(category = "Assets")
@@ -182,6 +184,44 @@ process_format_2 <- function(path) {
     income_statement = dat[52:80,c(2,3)] %>%
       set_names(c("description", "value")) %>%
       mutate(category = "Income Statement")
+    
+    } else if (dat[5,1] == "Шифър") {
+      
+      assets <- dat[6:20, c(2,3)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Assets")
+      
+      liabilities = dat[23:35,c(2,3)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Liabilities")
+      
+      equity = dat[38:48,c(2,3)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Equity")
+      
+      income_statement = dat[52:80,c(2,3)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Income Statement") 
+      
+    } else {
+      
+      assets <- dat[6:20, c(1,2)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Assets")
+      
+      liabilities = dat[23:35,c(1,2)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Liabilities")
+      
+      equity = dat[38:48,c(1,2)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Equity")
+      
+      income_statement = dat[52:80,c(1,2)] %>%
+        set_names(c("description", "value")) %>%
+        mutate(category = "Income Statement") 
+      
+    }
       
     all_data = assets %>%
       bind_rows(liabilities) %>%
