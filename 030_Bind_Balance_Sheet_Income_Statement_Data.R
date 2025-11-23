@@ -507,9 +507,53 @@ Net_Other_Income = All_Balance_Sheet_Income_Data %>%
 All_Balance_Sheet_Income_Data_Plus_Net_Incomes = All_Balance_Sheet_Income_Data %>%
   bind_rows(Net_Interest_Income) %>%
   bind_rows(Net_Tax_Income) %>%
-  bind_rows(Net_Other_Income)
+  bind_rows(Net_Other_Income) %>%
+  mutate(period_type = case_when(category %in% c("Assets","Liabilities","Equity","Liabilities & Equity") ~ "Point in time"
+                                 , category == "Income Statement" ~ "Yearly"
+                                 )
+         )
 
-write_xlsx(All_Balance_Sheet_Income_Data_Plus_Net_Incomes,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
+# Calculate quarterly data
+metrics_q <- c(
+  "ПЕЧАЛБА ИЛИ (-) ЗАГУБА ЗА ГОДИНАТА",
+  "ОБЕЗЦЕНКА",
+  "(АДМИНИСТРАТИВНИ РАЗХОДИ)",
+  "ПРИХОДИ ОТ ЛИХВИ",
+  "(РАЗХОДИ ЗА ЛИХВИ)",
+  "ПРИХОДИ ОТ ТАКСИ И КОМИСИОНИ",
+  "(РАЗХОДИ ЗА ТАКСИ И КОМИСИОНИ)",
+  "ДРУГИ ОПЕРАТИВНИ ПРИХОДИ",
+  "(ДРУГИ ОПЕРАТИВНИ РАЗХОДИ)",
+  "НЕТЕН ЛИХВЕН ДОХОД", 
+  "НЕТЕН ДОХОД ОТ ТАКСИ",
+  "НЕТЕН ДОХОД ОТ ДРУГО",
+  "ОБЩО НЕТЕН ОПЕРАТИВЕН ДОХОД",
+  "ПЕЧАЛБА ИЛИ (-) ЗАГУБА ПРЕДИ ДАНЪЧНО ОБЛАГАНЕ ОТ ТЕКУЩИ ДЕЙНОСТИ",
+  "(ДАНЪЧНИ РАЗХОДИ ИЛИ (-) ПРИХОДИ, СВЪРЗАНИ С ПЕЧАЛБАТА ИЛИ ЗАГУБАТА ОТ ТЕКУЩИ ДЕЙНОСТИ)",
+  "НЕТНИ ПЕЧАЛБИ ИЛИ (-) ЗАГУБИ ОТ КУРСОВИ РАЗЛИКИ",
+  "(ПАРИЧНИ ВНОСКИ ЗА ФОНДОВЕ ЗА ПРЕСТРУКТУРИРАНЕ И СХЕМИ ЗА ГАРАНТИРАНЕ НА ДЕПОЗИТИТЕ)",
+  "НЕТНИ ПЕЧАЛБИ ИЛИ (-) ЗАГУБИ ОТ ФИНАНСОВИ АКТИВИ И ПАСИВИ, ДЪРЖАНИ ЗА ТЪРГУВАНЕ"
+)
+
+Q_Data <- All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
+  filter(description %in% metrics_q) %>%
+  mutate(year = year(report_date)) %>%
+  group_by(excel_sheet_code, year, description) %>%
+  arrange(report_date, .by_group = TRUE) %>%
+  mutate(
+    value = case_when(
+     quarter(report_date) == 1 ~ value,
+     TRUE ~ value - lag(value)
+    )
+  ) %>%
+  ungroup() %>%
+  select(-year) %>%
+  mutate(period_type = "Quarterly")
+
+All_Balance_Sheet_Income_Data_Plus_Net_Incomes_Plus_Quarterly_Data = All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
+  bind_rows(Q_Data)
+
+write_xlsx(All_Balance_Sheet_Income_Data_Plus_Net_Incomes_Plus_Quarterly_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
 
 }
 
