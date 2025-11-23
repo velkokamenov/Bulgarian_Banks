@@ -414,6 +414,7 @@ bs_long_format_5 <- map_dfr(files_format_5, process_format_5)
 }
 
 # Format Final File
+{
 Bank_Names_Nomenclature = read_xlsx("./Input Data/Bank_Names_Nomenclature.xlsx")
 
 All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
@@ -458,7 +459,57 @@ All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
                                                 )
          )
 
-write_xlsx(All_Balance_Sheet_Income_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
+Net_Interest_Income = All_Balance_Sheet_Income_Data %>%
+  filter(description == "ПРИХОДИ ОТ ЛИХВИ") %>%
+  select(-description) %>%
+  plyr::rename(c("value" = "interest_income")) %>%
+  left_join(All_Balance_Sheet_Income_Data %>%
+              filter(description == "(РАЗХОДИ ЗА ЛИХВИ)") %>%
+              select(excel_sheet_code, report_date, interest_expense = value), by = c("excel_sheet_code" = "excel_sheet_code"
+                               , "report_date" = "report_date"
+                               )
+            ) %>%
+  mutate(value = coalesce(interest_income,0)-coalesce(interest_expense,0)
+         , description = "НЕТЕН ЛИХВЕН ДОХОД"
+         ) %>%
+  select(-interest_income, -interest_expense)
 
+Net_Tax_Income = All_Balance_Sheet_Income_Data %>%
+  filter(description == "ПРИХОДИ ОТ ТАКСИ И КОМИСИОНИ") %>%
+  select(-description) %>%
+  plyr::rename(c("value" = "tax_income")) %>%
+  left_join(All_Balance_Sheet_Income_Data %>%
+              filter(description == "(РАЗХОДИ ЗА ТАКСИ И КОМИСИОНИ)") %>%
+              select(excel_sheet_code, report_date, tax_expense = value), by = c("excel_sheet_code" = "excel_sheet_code"
+                                                                                      , "report_date" = "report_date"
+              )
+  ) %>%
+  mutate(value = coalesce(tax_income,0)-coalesce(tax_expense,0)
+         , description = "НЕТЕН ДОХОД ОТ ТАКСИ"
+  ) %>%
+  select(-tax_income, -tax_expense)
 
+Net_Other_Income = All_Balance_Sheet_Income_Data %>%
+  filter(description == "ДРУГИ ОПЕРАТИВНИ ПРИХОДИ") %>%
+  select(-description) %>%
+  plyr::rename(c("value" = "other_income")) %>%
+  left_join(All_Balance_Sheet_Income_Data %>%
+              filter(description == "(ДРУГИ ОПЕРАТИВНИ РАЗХОДИ)") %>%
+              select(excel_sheet_code, report_date, other_expense = value), by = c("excel_sheet_code" = "excel_sheet_code"
+                                                                                 , "report_date" = "report_date"
+              )
+  ) %>%
+  mutate(value = coalesce(other_income,0)-coalesce(other_expense,0)
+         , description = "НЕТЕН ДОХОД ОТ ДРУГО"
+  ) %>%
+  select(-other_income, -other_expense)
+
+All_Balance_Sheet_Income_Data_Plus_Net_Incomes = All_Balance_Sheet_Income_Data %>%
+  bind_rows(Net_Interest_Income) %>%
+  bind_rows(Net_Tax_Income) %>%
+  bind_rows(Net_Other_Income)
+
+write_xlsx(All_Balance_Sheet_Income_Data_Plus_Net_Incomes,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
+
+}
 
