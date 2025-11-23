@@ -551,7 +551,11 @@ Q_Data <- All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
   mutate(period_type = "Quarter")
 
 All_Balance_Sheet_Income_Data_Plus_Net_Incomes_Plus_Quarterly_Data = All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
-  bind_rows(Q_Data)
+  bind_rows(Q_Data) %>%
+  mutate(report_year = year(report_date)) %>%
+  group_by(report_year) %>%
+  mutate(full_year = ifelse(max(month(report_date) == 12),1,0)) %>%
+  ungroup()
 
 write_xlsx(All_Balance_Sheet_Income_Data_Plus_Net_Incomes_Plus_Quarterly_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
 
