@@ -509,7 +509,7 @@ All_Balance_Sheet_Income_Data_Plus_Net_Incomes = All_Balance_Sheet_Income_Data %
   bind_rows(Net_Tax_Income) %>%
   bind_rows(Net_Other_Income) %>%
   mutate(period_type = case_when(category %in% c("Assets","Liabilities","Equity","Liabilities & Equity") ~ "Point in time"
-                                 , category == "Income Statement" ~ "Yearly"
+                                 , category == "Income Statement" ~ "YTD"
                                  )
          )
 
@@ -548,7 +548,7 @@ Q_Data <- All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
   ) %>%
   ungroup() %>%
   select(-year) %>%
-  mutate(period_type = "Quarterly")
+  mutate(period_type = "Quarter")
 
 All_Balance_Sheet_Income_Data_Plus_Net_Incomes_Plus_Quarterly_Data = All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
   bind_rows(Q_Data)
