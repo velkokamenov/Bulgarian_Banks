@@ -453,6 +453,9 @@ All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
          , quarter_flag = paste0("Q", quarter(report_date))
          , max_date_flag = ifelse(report_date == max(report_date, na.rm = T),1,0)
          , value = as.numeric(value)*1000
+         , last_q_or_last_date_flag = case_when(quarter_flag == "Q4" | max_date_flag == 1 ~ 1
+                                                , TRUE ~ 0
+                                                )
          )
 
 write_xlsx(All_Balance_Sheet_Income_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
