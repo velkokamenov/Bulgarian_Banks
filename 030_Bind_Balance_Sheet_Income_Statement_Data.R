@@ -450,6 +450,8 @@ All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
                                    , description %in% c("НЕТНИ ПЕЧАЛБИ ИЛИ (-) ЗАГУБИ ОТ ФИНАНСОВИ АКТИВИ И ПАСИВИ, ДЪРЖАНИ ЗА ТЪРГУВАНЕ","НЕТНИ ПЕЧАЛБИ (ЗАГУБИ) ОТ ФИНАНСОВИ АКТИВИ И ПАСИВИ ДЪРЖАНИ ЗА ТЪРГУВАНЕ") ~ "НЕТНИ ПЕЧАЛБИ ИЛИ (-) ЗАГУБИ ОТ ФИНАНСОВИ АКТИВИ И ПАСИВИ, ДЪРЖАНИ ЗА ТЪРГУВАНЕ"
                                    , TRUE ~ description
                                    )
+         , quarter_flag = paste0("Q", quarter(report_date))
+         , max_date_flag = ifelse(report_date == max(report_date, na.rm = T),1,0)
          )
 
 write_xlsx(All_Balance_Sheet_Income_Data,"./Output Data/030_All_Balance_Sheet_Income_Data.xlsx")
