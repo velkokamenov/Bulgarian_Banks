@@ -537,6 +537,9 @@ metrics_q <- c(
 
 Q_Data <- All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
   filter(description %in% metrics_q) %>%
+  group_by(description, category, bank_name, report_date, excel_sheet_code, bank_name_aggregated, failed, acquired, quarter_flag, max_date_flag, last_q_or_last_date_flag, period_type) %>%
+  summarise(value = sum(value, na.rm = T)) %>%
+  ungroup() %>%
   mutate(year = year(report_date)) %>%
   group_by(excel_sheet_code, year, description) %>%
   arrange(report_date, .by_group = TRUE) %>%
