@@ -143,52 +143,53 @@ process_format_3 <- function(path) {
     header2 = coalesce(as.character(dat[1,2]),"NA")
     header3 = coalesce(as.character(dat[2,2]),"NA")
     
+    # initialize
+    debt_securities      <- NULL
+    credits_and_advances <- NULL
+    deposits             <- NULL
+    
     if (header1 == "40. Капиталови, дългови и компенсаторни инструменти,  инвестиции в асоциирани, дъщерни и съвместни предприятия (осчетоводени, прилагайки капиталовия метод - включително репутация), кредити и аванси, привлечени средства и справочна информация.") {
       
-      bank_name     <- as.character(dat[12, 2, drop = TRUE])
-      report_date   <- get_report_date(dat[11, 7, drop = TRUE])
+      bank_name   <- as.character(dat[12, 2, drop = TRUE])
+      report_date <- get_report_date(dat[11, 7, drop = TRUE])
       
-      debt_securities = dat[17:31,c(2,3,7)] %>%
+      debt_securities <- dat[17:31,c(2,3,7)] %>%
         set_names(c("description", "total", "interest_income_expense")) %>%
-        mutate(category = "Debt Securities") %>%
-        mutate(bank_name = bank_name
-               , report_date = report_date
-               , excel_sheet_code = sh
-        )
-      
+        mutate(category = "Debt Securities",
+               bank_name = bank_name,
+               report_date = report_date,
+               excel_sheet_code = sh)
     }
     
     if (header2 == "40Б1 – Кредити и аванси (брутни) по видове валути, информация за специфичните провизии за загуби от обезценка и приходите от  лихви") {
       
-      bank_name     <- as.character(dat[9, 2, drop = TRUE])
-      report_date   <- get_report_date(dat[8, 8, drop = TRUE])
+      bank_name   <- as.character(dat[9, 2, drop = TRUE])
+      report_date <- get_report_date(dat[8, 8, drop = TRUE])
       
-      credits_and_advances = dat[14:21,c(2,3,8)] %>%
+      credits_and_advances <- dat[14:21,c(2,3,8)] %>%
         set_names(c("description", "total", "interest_income_expense")) %>%
-        mutate(category = "Credits and Advances") %>%
-        mutate(bank_name = bank_name
-               , report_date = report_date
-               , excel_sheet_code = sh
-        )
-      
+        mutate(category = "Credits and Advances",
+               bank_name = bank_name,
+               report_date = report_date,
+               excel_sheet_code = sh)
     }
     
     if (header3 == "40В1. Привлечени средства по видове валути и информация за разходите за лихви") {
       
-      bank_name     <- as.character(dat[5, 2, drop = TRUE])
-      report_date   <- get_report_date(dat[4, 8, drop = TRUE])
+      bank_name   <- as.character(dat[5, 2, drop = TRUE])
+      report_date <- get_report_date(dat[4, 8, drop = TRUE])
       
-      deposits = dat[12:25,c(2,3,7)] %>%
+      deposits <- dat[12:25,c(2,3,7)] %>%
         set_names(c("description", "total", "interest_income_expense")) %>%
-        mutate(category = "Deposits") %>%
-        mutate(bank_name = bank_name
-               , report_date = report_date
-               , excel_sheet_code = sh
-        )
-      
+        mutate(category = "Deposits",
+               bank_name = bank_name,
+               report_date = report_date,
+               excel_sheet_code = sh)
     }
     
+    bind_rows(debt_securities, credits_and_advances, deposits)
   })
+  
 }
 
 cd_long_format_3 <- map_dfr(files_format_3, process_format_3)
@@ -216,51 +217,50 @@ process_format_4 <- function(path) {
       header2 = coalesce(as.character(dat[1,2]),"NA")
       header3 = coalesce(as.character(dat[2,2]),"NA")
       
+      debt_securities      <- NULL
+      credits_and_advances <- NULL
+      deposits             <- NULL
+      
       if (header1 == "40. Капиталови, дългови и компенсаторни инструменти,  инвестиции в асоциирани, дъщерни и съвместни предприятия (осчетоводени, прилагайки капиталовия метод - включително репутация), кредити и аванси, привлечени средства и справочна информация.") {
         
-        bank_name     <- as.character(dat[13, 2, drop = TRUE])
-        report_date   <- get_report_date(dat[11, 7, drop = TRUE])
+        bank_name   <- as.character(dat[13, 2, drop = TRUE])
+        report_date <- get_report_date(dat[11, 7, drop = TRUE])
         
-        debt_securities = dat[18:32,c(2,3,7)] %>%
+        debt_securities <- dat[18:32,c(2,3,7)] %>%
           set_names(c("description", "total", "interest_income_expense")) %>%
-          mutate(category = "Debt Securities") %>%
-          mutate(bank_name = bank_name
-                 , report_date = report_date
-                 , excel_sheet_code = sh
-          )
-        
+          mutate(category = "Debt Securities",
+                 bank_name = bank_name,
+                 report_date = report_date,
+                 excel_sheet_code = sh)
       }
       
       if (header2 == "40Б1 – Кредити и аванси (брутни) по видове валути, информация за специфичните провизии за загуби от обезценка и приходите от  лихви") {
         
-        bank_name     <- as.character(dat[10, 2, drop = TRUE])
-        report_date   <- get_report_date(dat[8, 8, drop = TRUE])
+        bank_name   <- as.character(dat[10, 2, drop = TRUE])
+        report_date <- get_report_date(dat[8, 8, drop = TRUE])
         
-        credits_and_advances = dat[15:22,c(2,3,8)] %>%
+        credits_and_advances <- dat[15:22,c(2,3,8)] %>%
           set_names(c("description", "total", "interest_income_expense")) %>%
-          mutate(category = "Credits and Advances") %>%
-          mutate(bank_name = bank_name
-                 , report_date = report_date
-                 , excel_sheet_code = sh
-          )
-        
+          mutate(category = "Credits and Advances",
+                 bank_name = bank_name,
+                 report_date = report_date,
+                 excel_sheet_code = sh)
       }
       
       if (header3 == "40В1. Привлечени средства по видове валути и информация за разходите за лихви") {
         
-        bank_name     <- as.character(dat[6, 2, drop = TRUE])
-        report_date   <- get_report_date(dat[4, 8, drop = TRUE])
+        bank_name   <- as.character(dat[6, 2, drop = TRUE])
+        report_date <- get_report_date(dat[4, 8, drop = TRUE])
         
-        deposits = dat[13:26,c(2,3,7)] %>%
+        deposits <- dat[13:26,c(2,3,7)] %>%
           set_names(c("description", "total", "interest_income_expense")) %>%
-          mutate(category = "Deposits") %>%
-          mutate(bank_name = bank_name
-                 , report_date = report_date
-                 , excel_sheet_code = sh
-          )
-        
+          mutate(category = "Deposits",
+                 bank_name = bank_name,
+                 report_date = report_date,
+                 excel_sheet_code = sh)
       }
       
+      bind_rows(debt_securities, credits_and_advances, deposits)
     })
   }
   
@@ -269,8 +269,32 @@ cd_long_format_4 <- map_dfr(files_format_4, process_format_4)
     
 }
 
+# Format Final File
+Bank_Names_Nomenclature = read_xlsx("./Input Data/Bank_Names_Nomenclature.xlsx")
 
-
+All_Credits_And_Deposits_Data = cd_long_format_1 %>%
+  bind_rows(cd_long_format_2) %>%
+  bind_rows(cd_long_format_3) %>%
+  bind_rows(cd_long_format_4) %>%
+  left_join(Bank_Names_Nomenclature %>% mutate(excel_sheet_code = as.character(excel_sheet_code)), by = "excel_sheet_code") %>%
+  mutate(description = toupper(description)
+         , description = case_when(description %in% c("ДОМАКИНСТВА","ДОМАКИНСТВА**") ~ "ДОМАКИНСТВА"
+                                   , description %in% c("НЕФИНАНСОВИ ПРЕДПРИЯТИЯ","НЕФИНАНСОВИ ПРЕДПРИЯТИЯ**") ~ "НЕФИНАНСОВИ ПРЕДПРИЯТИЯ"
+                                   , description %in% c("ИНСТИТУЦИИ, РАЗЛИЧНИ ОТ КРЕДИТНИ","ИНСТИТУЦИИ, РАЗЛИЧНИ ОТ КРЕДИТНИ, ВКЛ. ПРЕДПРИЯТИЯ") ~ "ИНСТИТУЦИИ, РАЗЛИЧНИ ОТ КРЕДИТНИ"
+                                   , description %in% c("ОТ КОИТО: ЖИЛИЩНИ ИПОТЕЧНИ КРЕДИТИ","ОТ КОИТО: КРЕДИТИ, ОБЕЗПЕЧЕНИ С ЖИЛИЩЕН ИМОТ","ОТ КОИТО: КРЕДИТИ, ОБЕЗПЕЧЕНИ С ЖИЛИЩЕН ИМОТ**") ~ "ОТ КОИТО: ЖИЛИЩНИ ИПОТЕЧНИ КРЕДИТИ"
+                                   , description %in% c("ОТ КОИТО: ПОТРЕБИТЕЛСКИ КРЕДИТИ","ОТ КОИТО: ПОТРЕБИТЕЛСКИ КРЕДИТ") ~ "ОТ КОИТО: ПОТРЕБИТЕЛСКИ КРЕДИТИ"
+                                   , TRUE ~ description
+                                   )
+         , quarter_flag = paste0("Q", quarter(report_date))
+         , max_date_flag = ifelse(report_date == max(report_date, na.rm = T),1,0)
+         , total = as.numeric(total)*1000
+         , last_q_or_last_date_flag = case_when(quarter_flag == "Q4" | max_date_flag == 1 ~ 1
+                                                , TRUE ~ 0
+                                                )
+         )
+  
+Test = All_Credits_And_Deposits_Data %>%
+  count(description)
 
 
 
