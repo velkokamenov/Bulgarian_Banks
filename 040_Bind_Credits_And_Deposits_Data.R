@@ -195,3 +195,88 @@ cd_long_format_3 <- map_dfr(files_format_3, process_format_3)
 }
 
 ### --- Format 4 (2007 03 to 2008 09) --- ###
+{
+files_format_4 <- list.files(
+    path       = in_dir,
+    pattern = "^bcb_q_(attr_funds|loans_adv|securities)_((0[3-9]2007)|(1[0-2]2007)|(0[1-9]2008))_a[2-4]_bg\\.xls$",
+    full.names = TRUE
+  )
+
+process_format_4 <- function(path) {
+    
+    library(readxl)
+    library(tidyverse)
+    
+    sheets <- excel_sheets(path) |> setdiff(c("Sheet2","Sheet3"))
+    
+    map_dfr(sheets, function(sh) {
+      dat <- read_xls(path, sheet = sh, col_names = FALSE)
+      
+      header1 = coalesce(as.character(dat[1,1]),"NA")
+      header2 = coalesce(as.character(dat[1,2]),"NA")
+      header3 = coalesce(as.character(dat[2,2]),"NA")
+      
+      if (header1 == "40. Капиталови, дългови и компенсаторни инструменти,  инвестиции в асоциирани, дъщерни и съвместни предприятия (осчетоводени, прилагайки капиталовия метод - включително репутация), кредити и аванси, привлечени средства и справочна информация.") {
+        
+        bank_name     <- as.character(dat[13, 2, drop = TRUE])
+        report_date   <- get_report_date(dat[11, 7, drop = TRUE])
+        
+        debt_securities = dat[18:32,c(2,3,7)] %>%
+          set_names(c("description", "total", "interest_income_expense")) %>%
+          mutate(category = "Debt Securities") %>%
+          mutate(bank_name = bank_name
+                 , report_date = report_date
+                 , excel_sheet_code = sh
+          )
+        
+      }
+      
+      if (header2 == "40Б1 – Кредити и аванси (брутни) по видове валути, информация за специфичните провизии за загуби от обезценка и приходите от  лихви") {
+        
+        bank_name     <- as.character(dat[10, 2, drop = TRUE])
+        report_date   <- get_report_date(dat[8, 8, drop = TRUE])
+        
+        credits_and_advances = dat[15:22,c(2,3,8)] %>%
+          set_names(c("description", "total", "interest_income_expense")) %>%
+          mutate(category = "Credits and Advances") %>%
+          mutate(bank_name = bank_name
+                 , report_date = report_date
+                 , excel_sheet_code = sh
+          )
+        
+      }
+      
+      if (header3 == "40В1. Привлечени средства по видове валути и информация за разходите за лихви") {
+        
+        bank_name     <- as.character(dat[6, 2, drop = TRUE])
+        report_date   <- get_report_date(dat[4, 8, drop = TRUE])
+        
+        deposits = dat[13:26,c(2,3,7)] %>%
+          set_names(c("description", "total", "interest_income_expense")) %>%
+          mutate(category = "Deposits") %>%
+          mutate(bank_name = bank_name
+                 , report_date = report_date
+                 , excel_sheet_code = sh
+          )
+        
+      }
+      
+    })
+  }
+  
+cd_long_format_4 <- map_dfr(files_format_4, process_format_4)
+
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
