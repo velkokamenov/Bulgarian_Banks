@@ -1,3 +1,5 @@
 https://www.bnb.bg/BankSupervision/BSCreditInstitution/BSCIFinansReports/BSCIFRForeignBanks/index.htm?forYear=2025
 
 https://www.bnb.bg/ResearchAndPublications/PubPeriodical/PubPBanksInBulgaria/index.htm?forYear=2025
+
+Link for aggregated data checks: https://www.bnb.bg/BankSupervision/BSCreditInstitution/BSCIFinansReports/BSCIFRBankingSystem/BS_202512_BG
