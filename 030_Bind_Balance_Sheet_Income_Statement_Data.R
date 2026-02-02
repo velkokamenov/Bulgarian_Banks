@@ -546,6 +546,7 @@ Q_Data <- All_Balance_Sheet_Income_Data_Plus_Net_Incomes %>%
   mutate(
     value = case_when(
      quarter(report_date) == 1 ~ value,
+     is.na(lag(value)) ~ value,
      TRUE ~ value - lag(value)
     )
   ) %>%

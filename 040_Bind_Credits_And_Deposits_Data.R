@@ -334,7 +334,10 @@ All_Credits_And_Deposits_Data = cd_long_format_1 %>%
 Q_Data <- All_Credits_And_Deposits_Data %>%
   group_by(excel_sheet_code, category, description) %>%
   arrange(report_date, .by_group = TRUE) %>%
-  mutate(total = total - lag(total)
+  mutate(total = case_when(
+           is.na(lag(total)) ~ total,
+           TRUE ~ total - lag(total)
+         )
          , period_type = "Quarter"
          ) 
 
