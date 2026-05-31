@@ -1,6 +1,6 @@
 library(httr)
 
-years    <- 2004:2025
+years    <- 2004:as.integer(format(Sys.Date(), "%Y"))
 quarters <- c(3, 6, 9, 12)
 
 dest_dir <- "./Input Data/Balance Sheet and Income Statement"

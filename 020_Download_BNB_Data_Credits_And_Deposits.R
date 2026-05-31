@@ -1,6 +1,6 @@
 library(httr)
 
-years_cd    <- 2004:2025
+years_cd    <- 2004:as.integer(format(Sys.Date(), "%Y"))
 quarters_cd <- c(3, 6, 9, 12)
 
 dest_dir_cd <- "./Input Data/Credits and Deposits"
