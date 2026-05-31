@@ -45,19 +45,22 @@ process_format_1 <- function(path) {
   
   map_dfr(sheets, function(sh) {
     dat <- read_xlsx(path, sheet = sh, col_names = FALSE)
-    
+
     bank_name     <- as.character(dat[1, 2, drop = TRUE])
     report_date   <- get_report_date(dat[2, 2, drop = TRUE])
-    
-    debt_securities = dat[8:13,c(1,2,5)] %>%
+
+    # 2026+ files have 4 columns (column 3 removed), so interest is in col 4 instead of 5
+    int_col <- if (ncol(dat) >= 5) 5 else 4
+
+    debt_securities = dat[8:13,c(1,2,int_col)] %>%
       set_names(c("description", "total", "interest_income_expense")) %>%
       mutate(category = "Debt Securities")
-    
-    credits_and_advances = dat[18:26,c(1,2,5)] %>%
+
+    credits_and_advances = dat[18:26,c(1,2,int_col)] %>%
       set_names(c("description", "total", "interest_income_expense")) %>%
       mutate(category = "Credits and Advances")
-    
-    deposits = dat[31:37,c(1,2,5)] %>%
+
+    deposits = dat[31:37,c(1,2,int_col)] %>%
       set_names(c("description", "total", "interest_income_expense")) %>%
       mutate(category = "Deposits")
     
