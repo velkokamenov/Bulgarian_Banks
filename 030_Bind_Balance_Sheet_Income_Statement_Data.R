@@ -415,6 +415,8 @@ bs_long_format_5 <- map_dfr(files_format_5, process_format_5)
 
 # Format Final File
 {
+BGN_EUR_RATE <- 1.95583
+
 Bank_Names_Nomenclature = read_xlsx("./Input Data/Bank_Names_Nomenclature.xlsx")
 
 All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
@@ -422,7 +424,19 @@ All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
   bind_rows(bs_long_format_3) %>%
   bind_rows(bs_long_format_4) %>%
   bind_rows(bs_long_format_5) %>%
-  left_join(Bank_Names_Nomenclature %>% mutate(excel_sheet_code = as.character(excel_sheet_code)), by = "excel_sheet_code") %>%
+  left_join(Bank_Names_Nomenclature %>% mutate(excel_sheet_code = as.character(excel_sheet_code)), by = "excel_sheet_code")
+
+unmapped_codes <- All_Balance_Sheet_Income_Data %>%
+  filter(is.na(bank_name_aggregated)) %>%
+  distinct(excel_sheet_code) %>%
+  pull(excel_sheet_code)
+
+if (length(unmapped_codes) > 0) {
+  warning("Unmapped bank codes found in data: ", paste(unmapped_codes, collapse = ", "),
+          "\nPlease update Bank_Names_Nomenclature.xlsx")
+}
+
+All_Balance_Sheet_Income_Data = All_Balance_Sheet_Income_Data %>%
   mutate(description = toupper(description)
          , description = case_when(description %in% c("ОБЩО КАПИТАЛ","ОБЩО СОБСТВЕН КАПИТАЛ") ~ "ОБЩО СОБСТВЕН КАПИТАЛ"
                                    , description %in% c("ОБЩО ПАСИВИ И КАПИТАЛ","ОБЩО СОБСТВЕН КАПИТАЛ И ОБЩО ПАСИВИ","ОБЩО ПАСИВИ, МАЛЦИНСТВЕНО УЧАСТИЕ И КАПИТАЛ") ~ "ОБЩО СОБСТВЕН КАПИТАЛ И ОБЩО ПАСИВИ"
@@ -453,7 +467,7 @@ All_Balance_Sheet_Income_Data = bs_long_format_1 %>%
                                    )
          , quarter_flag = paste0("Q", quarter(report_date))
          , max_date_flag = ifelse(report_date == max(report_date, na.rm = T),1,0)
-         , value = as.numeric(value)*1000
+         , value = as.numeric(value) * 1000 / ifelse(report_date <= as.Date("2025-12-31"), BGN_EUR_RATE, 1)
          , last_q_or_last_date_flag = case_when(quarter_flag == "Q4" | max_date_flag == 1 ~ 1
                                                 , TRUE ~ 0
                                                 )

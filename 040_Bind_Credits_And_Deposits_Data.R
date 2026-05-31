@@ -303,13 +303,27 @@ cd_long_format_4 <- map_dfr(files_format_4, process_format_4)
 
 # Format Final File
 {
+BGN_EUR_RATE <- 1.95583
+
 Bank_Names_Nomenclature = read_xlsx("./Input Data/Bank_Names_Nomenclature.xlsx")
 
 All_Credits_And_Deposits_Data = cd_long_format_1 %>%
   bind_rows(cd_long_format_2) %>%
   bind_rows(cd_long_format_3) %>%
   bind_rows(cd_long_format_4) %>%
-  left_join(Bank_Names_Nomenclature %>% mutate(excel_sheet_code = as.character(excel_sheet_code)), by = "excel_sheet_code") %>%
+  left_join(Bank_Names_Nomenclature %>% mutate(excel_sheet_code = as.character(excel_sheet_code)), by = "excel_sheet_code")
+
+unmapped_codes <- All_Credits_And_Deposits_Data %>%
+  filter(is.na(bank_name_aggregated)) %>%
+  distinct(excel_sheet_code) %>%
+  pull(excel_sheet_code)
+
+if (length(unmapped_codes) > 0) {
+  warning("Unmapped bank codes found in data: ", paste(unmapped_codes, collapse = ", "),
+          "\nPlease update Bank_Names_Nomenclature.xlsx")
+}
+
+All_Credits_And_Deposits_Data = All_Credits_And_Deposits_Data %>%
   mutate(description = toupper(description)
          , description = case_when(description %in% c("ДОМАКИНСТВА","ДОМАКИНСТВА**","ЕКСПОЗИЦИИ НА ДРЕБНО","ГРАЖДАНИ И ДОМАКИНСТВА") ~ "ДОМАКИНСТВА"
                                    , description %in% c("НЕФИНАНСОВИ ПРЕДПРИЯТИЯ","НЕФИНАНСОВИ ПРЕДПРИЯТИЯ**","ПРЕДПРИЯТИЯ (КОРПОРАТИВНИ КЛЕНТИ)","ИНСТИТУЦИИ, РАЗЛИЧНИ ОТ КРЕДИТНИ","ИНСТИТУЦИИ, РАЗЛИЧНИ ОТ КРЕДИТНИ, ВКЛ. ПРЕДПРИЯТИЯ") ~ "НЕФИНАНСОВИ ПРЕДПРИЯТИЯ"
@@ -323,7 +337,8 @@ All_Credits_And_Deposits_Data = cd_long_format_1 %>%
                                    )
          , quarter_flag = paste0("Q", quarter(report_date))
          , max_date_flag = ifelse(report_date == max(report_date, na.rm = T),1,0)
-         , total = as.numeric(total)*1000
+         , total = as.numeric(total) * 1000 / ifelse(report_date <= as.Date("2025-12-31"), BGN_EUR_RATE, 1)
+         , interest_income_expense = as.numeric(interest_income_expense) * 1000 / ifelse(report_date <= as.Date("2025-12-31"), BGN_EUR_RATE, 1)
          , last_q_or_last_date_flag = case_when(quarter_flag == "Q4" | max_date_flag == 1 ~ 1
                                                 , TRUE ~ 0
                                                 )
